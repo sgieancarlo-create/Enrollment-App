@@ -1,21 +1,23 @@
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { mockAuth } from '../src/config/mockAuth.ts';
+import { Redirect } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { useAuth } from '../src/context/AuthProvider';
 
 export default function Index() {
-  const router = useRouter();
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    (async () => {
-      await mockAuth.initialize();
-      const user = await mockAuth.currentUser();
-      if (user) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/(auth)/login');
-      }
-    })();
-  }, []);
+  // Show loading spinner while checking auth state
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
-  return null;
+  // Redirect based on authentication state
+  if (user) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
 }
