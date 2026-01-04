@@ -3,10 +3,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface User {
   email: string;
   uid: string;
+  name?: string;
+}
+
+interface UserData {
+  password: string;
+  name?: string;
 }
 
 interface StoredUsers {
-  [email: string]: string;
+  [email: string]: UserData;
 }
 
 const STORAGE_KEYS = {
@@ -14,7 +20,7 @@ const STORAGE_KEYS = {
   CURRENT_USER: '@mockAuth:currentUser',
 };
 
-let users: Map<string, string> = new Map();
+let users: Map<string, UserData> = new Map();
 let pendingOperations: Set<string> = new Set();
 
 const loadUsers = async (): Promise<void> => {
@@ -23,7 +29,18 @@ const loadUsers = async (): Promise<void> => {
     console.log('[mockAuth] Loading users from storage:', storedUsers);
     if (storedUsers) {
       const parsedUsers: StoredUsers = JSON.parse(storedUsers);
-      users = new Map(Object.entries(parsedUsers));
+      // Convert old format (string passwords) to new format (UserData objects)
+      const convertedUsers = new Map<string, UserData>();
+      for (const [email, data] of Object.entries(parsedUsers)) {
+        if (typeof data === 'string') {
+          // Old format: just password string
+          convertedUsers.set(email, { password: data });
+        } else {
+          // New format: UserData object
+          convertedUsers.set(email, data);
+        }
+      }
+      users = convertedUsers;
       console.log('[mockAuth] Loaded users:', Array.from(users.keys()));
     } else {
       users = new Map();
@@ -108,15 +125,19 @@ export const mockAuth = {
       await loadUsers();
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const storedPassword = users.get(email);
-      console.log('[mockAuth] Stored password exists:', !!storedPassword);
+      const userData = users.get(email);
+      console.log('[mockAuth] User data exists:', !!userData);
       
-      if (!storedPassword || storedPassword !== password) {
+      if (!userData || userData.password !== password) {
         console.log('[mockAuth] Sign in failed: invalid credentials');
         throw new Error('Invalid email or password');
       }
       
-      const user = { email, uid: Math.random().toString(36).substring(2) };
+      const user: User = { 
+        email, 
+        uid: Math.random().toString(36).substring(2),
+        name: userData.name
+      };
       await saveCurrentUser(user);
       console.log('[mockAuth] Sign in successful');
       
@@ -126,7 +147,7 @@ export const mockAuth = {
     }
   },
   
-  createUserWithEmailAndPassword: async (email: string, password: string): Promise<User> => {
+  createUserWithEmailAndPassword: async (email: string, password: string, name?: string): Promise<User> => {
     const operationKey = `register:${email}`;
     
     if (pendingOperations.has(operationKey)) {
@@ -155,10 +176,15 @@ export const mockAuth = {
       }
       
       console.log('[mockAuth] Adding new user to map');
-      users.set(email, password);
+      const userData: UserData = { password, name };
+      users.set(email, userData);
       await saveUsers();
       
-      const user = { email, uid: Math.random().toString(36).substring(2) };
+      const user: User = { 
+        email, 
+        uid: Math.random().toString(36).substring(2),
+        name
+      };
       await saveCurrentUser(user);
       console.log('[mockAuth] Registration successful');
       
@@ -172,6 +198,101 @@ export const mockAuth = {
     console.log('[mockAuth] Signing out');
     await new Promise(resolve => setTimeout(resolve, 300));
     await saveCurrentUser(null);
+  },
+  
+  updateProfile: async (email: string, updates: { name?: string }): Promise<User> => {
+    const operationKey = `updateProfile:${email}`;
+    
+    if (pendingOperations.has(operationKey)) {
+      console.log('[mockAuth] Profile update already in progress, skipping duplicate');
+      throw new Error('Operation already in progress');
+    }
+    
+    pendingOperations.add(operationKey);
+    
+    try {
+      console.log('[mockAuth] Profile update attempt:', email, updates);
+      await loadUsers();
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const userData = users.get(email);
+      if (!userData) {
+        console.log('[mockAuth] Profile update failed: user not found');
+        throw new Error('User not found');
+      }
+      
+      // Update user data
+      const updatedUserData: UserData = {
+        ...userData,
+        ...updates
+      };
+      users.set(email, updatedUserData);
+      await saveUsers();
+      
+      // Update current user
+      const currentUser = await loadCurrentUser();
+      if (currentUser && currentUser.email === email) {
+        const updatedUser: User = {
+          ...currentUser,
+          ...updates
+        };
+        await saveCurrentUser(updatedUser);
+        console.log('[mockAuth] Profile update successful');
+        return updatedUser;
+      }
+      
+      console.log('[mockAuth] Profile update successful (not current user)');
+      return { email, uid: Math.random().toString(36).substring(2), ...updates };
+    } finally {
+      pendingOperations.delete(operationKey);
+    }
+  },
+  
+  updatePassword: async (email: string, currentPassword: string, newPassword: string): Promise<void> => {
+    const operationKey = `updatePassword:${email}`;
+    
+    if (pendingOperations.has(operationKey)) {
+      console.log('[mockAuth] Password update already in progress, skipping duplicate');
+      throw new Error('Operation already in progress');
+    }
+    
+    pendingOperations.add(operationKey);
+    
+    try {
+      console.log('[mockAuth] Password update attempt:', email);
+      await loadUsers();
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const userData = users.get(email);
+      if (!userData) {
+        console.log('[mockAuth] Password update failed: user not found');
+        throw new Error('User not found');
+      }
+      
+      // Verify current password
+      if (userData.password !== currentPassword) {
+        console.log('[mockAuth] Password update failed: incorrect current password');
+        throw new Error('Current password is incorrect');
+      }
+      
+      // Validate new password
+      if (newPassword.length < 6) {
+        console.log('[mockAuth] Password update failed: new password too short');
+        throw new Error('New password should be at least 6 characters');
+      }
+      
+      // Update password
+      const updatedUserData: UserData = {
+        ...userData,
+        password: newPassword
+      };
+      users.set(email, updatedUserData);
+      await saveUsers();
+      
+      console.log('[mockAuth] Password update successful');
+    } finally {
+      pendingOperations.delete(operationKey);
+    }
   },
   
   clearAll: async (): Promise<void> => {

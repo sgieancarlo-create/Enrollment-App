@@ -4,14 +4,17 @@ import { mockAuth } from '../config/mockAuth';
 interface User {
   email: string;
   uid: string;
+  name?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (updates: { name?: string }) => Promise<void>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name?: string) => {
     const operationKey = `signup:${email}`;
     
     if (operationsInProgress.current.has(operationKey)) {
@@ -69,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     operationsInProgress.current.add(operationKey);
     
     try {
-      const user = await mockAuth.createUserWithEmailAndPassword(email, password);
+      const user = await mockAuth.createUserWithEmailAndPassword(email, password, name);
       setUser(user);
     } finally {
       operationsInProgress.current.delete(operationKey);
@@ -81,8 +84,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updateProfile = async (updates: { name?: string }) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const operationKey = `updateProfile:${user.email}`;
+    
+    if (operationsInProgress.current.has(operationKey)) {
+      console.log('[AuthProvider] Profile update already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    operationsInProgress.current.add(operationKey);
+    
+    try {
+      const updatedUser = await mockAuth.updateProfile(user.email, updates);
+      setUser(updatedUser);
+    } finally {
+      operationsInProgress.current.delete(operationKey);
+    }
+  };
+
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const operationKey = `updatePassword:${user.email}`;
+    
+    if (operationsInProgress.current.has(operationKey)) {
+      console.log('[AuthProvider] Password update already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    operationsInProgress.current.add(operationKey);
+    
+    try {
+      await mockAuth.updatePassword(user.email, currentPassword, newPassword);
+    } finally {
+      operationsInProgress.current.delete(operationKey);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateProfile, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
