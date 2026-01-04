@@ -2,9 +2,57 @@
 export interface User {
   uid: string;
   email: string;
+  name?: string;
   role: 'student' | 'admin';
+  profilePicture?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Theme Types
+export type ThemeMode = 'light' | 'dark';
+
+export interface Theme {
+  mode: ThemeMode;
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    error: string;
+    success: string;
+    warning: string;
+    info: string;
+  };
+}
+
+// Settings Types
+export interface AppSettings {
+  notifications: {
+    enabled: boolean;
+    email: boolean;
+    push: boolean;
+  };
+  theme: ThemeMode;
+}
+
+// Password Strength Types
+export type PasswordStrength = 'weak' | 'medium' | 'strong' | 'very-strong';
+
+export interface PasswordStrengthResult {
+  strength: PasswordStrength;
+  score: number; // 0-100
+  feedback: string[];
+  criteria: {
+    length: boolean;
+    uppercase: boolean;
+    lowercase: boolean;
+    numbers: boolean;
+    special: boolean;
+  };
 }
 
 // Student Types

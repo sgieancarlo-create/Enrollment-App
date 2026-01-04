@@ -4,11 +4,13 @@ interface User {
   email: string;
   uid: string;
   name?: string;
+  profilePicture?: string;
 }
 
 interface UserData {
   password: string;
   name?: string;
+  profilePicture?: string;
 }
 
 interface StoredUsers {
@@ -72,6 +74,18 @@ const loadCurrentUser = async (): Promise<User | null> => {
 const initialize = async (): Promise<void> => {
   console.log('[mockAuth] Initializing...');
   await loadUsers();
+  
+  // Seed default user if no users exist
+  if (users.size === 0) {
+    console.log('[mockAuth] No users found, seeding default user...');
+    const defaultUser: UserData = {
+      password: 'password123',
+      name: 'New Test'
+    };
+    users.set('newtest@example.com', defaultUser);
+    await saveUsers();
+    console.log('[mockAuth] Default user seeded: newtest@example.com');
+  }
 };
 
 const saveUsers = async (): Promise<void> => {
@@ -200,7 +214,7 @@ export const mockAuth = {
     await saveCurrentUser(null);
   },
   
-  updateProfile: async (email: string, updates: { name?: string }): Promise<User> => {
+  updateProfile: async (email: string, updates: { name?: string; profilePicture?: string }): Promise<User> => {
     const operationKey = `updateProfile:${email}`;
     
     if (pendingOperations.has(operationKey)) {
@@ -273,6 +287,12 @@ export const mockAuth = {
       if (userData.password !== currentPassword) {
         console.log('[mockAuth] Password update failed: incorrect current password');
         throw new Error('Current password is incorrect');
+      }
+      
+      // Check if new password is same as current password
+      if (newPassword === currentPassword) {
+        console.log('[mockAuth] Password update failed: new password same as current');
+        throw new Error('New password cannot be the same as your current password');
       }
       
       // Validate new password

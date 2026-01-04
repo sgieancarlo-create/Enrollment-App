@@ -5,6 +5,7 @@ interface User {
   email: string;
   uid: string;
   name?: string;
+  profilePicture?: string;
 }
 
 interface AuthContextType {
@@ -13,8 +14,10 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: { name?: string }) => Promise<void>;
+  updateProfile: (updates: { name?: string; profilePicture?: string }) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateProfilePicture: (uri: string) => Promise<void>;
+  removeProfilePicture: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
-  const updateProfile = async (updates: { name?: string }) => {
+  const updateProfile = async (updates: { name?: string; profilePicture?: string }) => {
     if (!user) {
       throw new Error('No user logged in');
     }
@@ -127,8 +130,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfilePicture = async (uri: string) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const operationKey = `updateProfilePicture:${user.email}`;
+    
+    if (operationsInProgress.current.has(operationKey)) {
+      console.log('[AuthProvider] Profile picture update already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    operationsInProgress.current.add(operationKey);
+    
+    try {
+      const updatedUser = await mockAuth.updateProfile(user.email, { profilePicture: uri });
+      setUser(updatedUser);
+    } finally {
+      operationsInProgress.current.delete(operationKey);
+    }
+  };
+
+  const removeProfilePicture = async () => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const operationKey = `removeProfilePicture:${user.email}`;
+    
+    if (operationsInProgress.current.has(operationKey)) {
+      console.log('[AuthProvider] Profile picture removal already in progress, ignoring duplicate call');
+      return;
+    }
+    
+    operationsInProgress.current.add(operationKey);
+    
+    try {
+      const updatedUser = await mockAuth.updateProfile(user.email, { profilePicture: undefined });
+      setUser(updatedUser);
+    } finally {
+      operationsInProgress.current.delete(operationKey);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, updateProfile, updatePassword }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        loading, 
+        signIn, 
+        signUp, 
+        signOut, 
+        updateProfile, 
+        updatePassword,
+        updateProfilePicture,
+        removeProfilePicture,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
