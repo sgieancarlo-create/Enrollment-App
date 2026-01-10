@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Enrollment System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>Enrollment System</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#" class="nav-link active" data-page="dashboard">Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-page="upload">Document Upload</a></li>
+                    <li><a href="#" class="nav-link" data-page="courses">Courses</a></li>
+                    <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
+                    <li><a href="#" class="nav-link" data-page="settings">Settings</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <div class="avatar">S</div>
+                <div class="user-details">
+                    <p class="user-name">Student User</p>
+                    <p class="user-email">student@edu.com</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn">🔔</button>
+                    <button class="logout-btn">Logout</button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Dashboard Page -->
+                <section id="dashboard" class="page active">
+                    <div class="welcome-section">
+                        <h2>Welcome Back, Student!</h2>
+                        <p>Complete your enrollment and submit required documents.</p>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-icon">📋</div>
+                            <h3>Enrollment Status</h3>
+                            <p class="status-badge incomplete">Incomplete</p>
+                            <p class="status-text">2 of 4 steps completed</p>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">📁</div>
+                            <h3>Documents</h3>
+                            <p class="status-count">3 Uploaded</p>
+                            <button class="quick-btn" onclick="navigateTo('upload')">Upload More</button>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">📚</div>
+                            <h3>Courses</h3>
+                            <p class="status-count">4 Registered</p>
+                            <button class="quick-btn" onclick="navigateTo('courses')">View Courses</button>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">✓</div>
+                            <h3>Verification</h3>
+                            <p class="status-badge pending">Pending</p>
+                            <p class="status-text">Awaiting admin review</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Document Upload Page -->
+                <section id="upload" class="page">
+                    <div class="upload-header">
+                        <h2>Document Upload</h2>
+                        <p>Upload required documents for your enrollment</p>
+                    </div>
+
+                    <!-- Upload Progress -->
+                    <div class="upload-progress-section">
+                        <h3>Upload Requirements</h3>
+                        <div class="requirements-list">
+                            <div class="requirement-item completed">
+                                <span class="check-mark">✓</span>
+                                <span>High School Certificate</span>
+                                <span class="date">Uploaded: Nov 15</span>
+                            </div>
+                            <div class="requirement-item completed">
+                                <span class="check-mark">✓</span>
+                                <span>ID Proof</span>
+                                <span class="date">Uploaded: Nov 18</span>
+                            </div>
+                            <div class="requirement-item completed">
+                                <span class="check-mark">✓</span>
+                                <span>Character Certificate</span>
+                                <span class="date">Uploaded: Nov 20</span>
+                            </div>
+                            <div class="requirement-item pending">
+                                <span class="check-mark">○</span>
+                                <span>Medical Certificate</span>
+                                <span class="date">Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Form -->
+                    <div class="upload-section">
+                        <h3>Upload New Document</h3>
+                        <form id="uploadForm" class="upload-form">
+                            <div class="form-group">
+                                <label for="docType">Document Type:</label>
+                                <select id="docType" required>
+                                    <option value="">Select Document Type</option>
+                                    <option value="certificate">High School Certificate</option>
+                                    <option value="id">ID Proof</option>
+                                    <option value="character">Character Certificate</option>
+                                    <option value="medical">Medical Certificate</option>
+                                    <option value="other">Other Documents</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="docDescription">Description (Optional):</label>
+                                <textarea id="docDescription" placeholder="Enter any additional details..."></textarea>
+                            </div>
+
+                            <div class="file-upload-wrapper">
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <div class="upload-icon">📤</div>
+                                    <p class="upload-text">Drag and drop your file here</p>
+                                    <p class="upload-subtext">or</p>
+                                    <label for="fileInput" class="file-input-label">Browse Files</label>
+                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                                    <p class="file-info">Accepted: PDF, DOC, DOCX, JPG, PNG (Max 10MB)</p>
+                                </div>
+                                <div id="filePreview" class="file-preview" style="display: none;">
+                                    <div class="preview-item">
+                                        <span class="file-icon">📄</span>
+                                        <div class="file-details">
+                                            <p id="fileName" class="file-name"></p>
+                                            <p id="fileSize" class="file-size"></p>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" id="progressFill"></div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="remove-file" onclick="removeFile()">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Upload Document</button>
+                                <button type="reset" class="btn btn-secondary">Clear Form</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Upload History -->
+                    <div class="upload-history">
+                        <h3>Recent Uploads</h3>
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Type</th>
+                                    <th>Upload Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="uploadHistoryBody">
+                                <tr>
+                                    <td>Transcript_2024.pdf</td>
+                                    <td>Certificate</td>
+                                    <td>Nov 20, 2024</td>
+                                    <td><span class="status-badge verified">Verified</span></td>
+                                    <td><button class="action-btn">Download</button></td>
+                                </tr>
+                                <tr>
+                                    <td>ID_Proof.jpg</td>
+                                    <td>ID Proof</td>
+                                    <td>Nov 18, 2024</td>
+                                    <td><span class="status-badge verified">Verified</span></td>
+                                    <td><button class="action-btn">Download</button></td>
+                                </tr>
+                                <tr>
+                                    <td>HighSchool_Certificate.pdf</td>
+                                    <td>Certificate</td>
+                                    <td>Nov 15, 2024</td>
+                                    <td><span class="status-badge verified">Verified</span></td>
+                                    <td><button class="action-btn">Download</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Courses Page -->
+                <section id="courses" class="page">
+                    <div class="courses-header">
+                        <h2>Enrolled Courses</h2>
+                        <p>View and manage your course enrollment</p>
+                    </div>
+                    
+                    <div class="courses-grid">
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h4>Introduction to Computer Science</h4>
+                                <span class="course-code">CS101</span>
+                            </div>
+                            <p class="course-instructor">Instructor: Prof. John Smith</p>
+                            <p class="course-schedule">Mon, Wed, Fri - 10:00 AM</p>
+                            <div class="course-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 65%;"></div>
+                                </div>
+                                <span class="progress-text">65% Complete</span>
+                            </div>
+                            <button class="btn btn-small">View Details</button>
+                        </div>
+                        
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h4>Mathematics - Calculus II</h4>
+                                <span class="course-code">MATH201</span>
+                            </div>
+                            <p class="course-instructor">Instructor: Prof. Sarah Johnson</p>
+                            <p class="course-schedule">Tue, Thu - 2:00 PM</p>
+                            <div class="course-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%;"></div>
+                                </div>
+                                <span class="progress-text">45% Complete</span>
+                            </div>
+                            <button class="btn btn-small">View Details</button>
+                        </div>
+
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h4>English Literature</h4>
+                                <span class="course-code">ENG150</span>
+                            </div>
+                            <p class="course-instructor">Instructor: Prof. Emily Davis</p>
+                            <p class="course-schedule">Mon, Wed - 1:00 PM</p>
+                            <div class="course-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 80%;"></div>
+                                </div>
+                                <span class="progress-text">80% Complete</span>
+                            </div>
+                            <button class="btn btn-small">View Details</button>
+                        </div>
+
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h4>Physics - Mechanics</h4>
+                                <span class="course-code">PHYS110</span>
+                            </div>
+                            <p class="course-instructor">Instructor: Prof. Michael Chen</p>
+                            <p class="course-schedule">Tue, Thu, Sat - 11:00 AM</p>
+                            <div class="course-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 55%;"></div>
+                                </div>
+                                <span class="progress-text">55% Complete</span>
+                            </div>
+                            <button class="btn btn-small">View Details</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Page -->
+                <section id="profile" class="page">
+                    <div class="profile-header">
+                        <h2>Student Profile</h2>
+                        <p>View and update your profile information</p>
+                    </div>
+
+                    <div class="profile-container">
+                        <div class="profile-picture-section">
+                            <div class="profile-picture">
+                                <span>S</span>
+                            </div>
+                            <button class="btn btn-small">Change Photo</button>
+                        </div>
+
+                        <form class="profile-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">First Name:</label>
+                                    <input type="text" id="firstName" value="John" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name:</label>
+                                    <input type="text" id="lastName" value="Doe" readonly>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input type="email" id="email" value="student@edu.com" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Phone:</label>
+                                <input type="tel" id="phone" value="+1 (555) 123-4567" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="studentId">Student ID:</label>
+                                <input type="text" id="studentId" value="STU2024001" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="enrollmentDate">Enrollment Date:</label>
+                                <input type="text" id="enrollmentDate" value="November 1, 2024" readonly>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="program">Program:</label>
+                                    <input type="text" id="program" value="Bachelor of Science" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="semester">Current Semester:</label>
+                                    <input type="text" id="semester" value="Fall 2024" readonly>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" onclick="editProfile()">Edit Profile</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Settings Page -->
+                <section id="settings" class="page">
+                    <div class="settings-header">
+                        <h2>Settings</h2>
+                        <p>Manage your account preferences</p>
+                    </div>
+
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3>Account Settings</h3>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label>Email Notifications</label>
+                                    <p>Receive notifications about enrollment updates</p>
+                                </div>
+                                <input type="checkbox" class="toggle-switch" checked>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label>SMS Alerts</label>
+                                    <p>Receive SMS alerts for important announcements</p>
+                                </div>
+                                <input type="checkbox" class="toggle-switch">
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Privacy & Security</h3>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label>Two-Factor Authentication</label>
+                                    <p>Add an extra layer of security to your account</p>
+                                </div>
+                                <button class="btn btn-small">Enable</button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <label>Change Password</label>
+                                    <p>Update your account password</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openChangePassword()">Change</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Preferences</h3>
+                            <div class="form-group">
+                                <label for="theme">Theme:</label>
+                                <select id="theme">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language:</label>
+                                <select id="language">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="settings-actions">
+                            <button class="btn btn-secondary" onclick="resetSettings()">Reset to Default</button>
+                            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notification" class="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
